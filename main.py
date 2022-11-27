@@ -3,7 +3,7 @@ import csv
 
 
 headers = {"accept": "accept: application/json, text/plain, */*"}
-response = requests.get("https://omma.us.thentiacloud.net/rest/public/profile/search/all/all",
+response = requests.get("https://omma.us.thentiacloud.net/rest/public/profile/search/?keyword=all&skip=0&take=20&lang=en&type=Grower&_=1667643431841",
                         headers=headers)
 result = response.json()["result"]
 titles = ["Business Name", "Trade Name", "License Type", "License Number", "License Date",
