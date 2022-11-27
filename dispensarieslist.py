@@ -3,12 +3,12 @@ import csv
 
 
 headers = {"accept": "accept: application/json, text/plain, */*"}
-response = requests.get("https://omma.us.thentiacloud.net/rest/public/profile/search/?keyword=all&skip=0&take=20&lang=en&type=Grower&_=1667643431841",
+response = requests.get("https://omma.us.thentiacloud.net/rest/public/profile/search/?keyword=all&skip=0&take=20&lang=en&type=Dispensary&_=1667643431841",
                         headers=headers)
 result = response.json()["result"]
 titles = ["Business Name", "Trade Name", "License Type", "License Number", "License Date",
           "County", "City", "Address", "Zip", "Phone", "Email", "Hours of Operation"]
-file_name = "dispensaries.csv"
+file_name = "growers.csv"
 with open(file_name, "a", newline="", encoding="utf-8") as file:
     writer = csv.writer(file)
     writer.writerow(titles)
