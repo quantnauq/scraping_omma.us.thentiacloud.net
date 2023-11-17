@@ -1,0 +1,66 @@
+import requests
+import csv
+import logging
+from requests.exceptions import RequestException
+from datetime import datetime, timedelta
+
+# Set up logging
+logging.basicConfig(level=logging.INFO, filename='data_fetch.log', filemode='a',
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Configuration
+URL = "https://omma.us.thentiacloud.net/rest/public/profile/search/?keyword=all&skip=0&take=20&lang=en&type=Dispensary&_=1667643431841"
+HEADERS = {"accept": "accept: application/json, text/plain, */*"}
+FILE_NAME = "growers.csv"
+TITLES = ["Business Name", "Trade Name", "License Type", "License Number", "License Date", "County", "City", "Address", "Zip", "Phone", "Email", "Hours of Operation"]
+
+def fetch_data(url, headers):
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Will raise HTTPError for HTTP error codes
+        return response.json()["result"]
+    except RequestException as e:
+        logging.error(f"Error fetching data: {e}")
+        return None
+
+def is_license_valid(license_date_str):
+    license_date = datetime.strptime(license_date_str, "%Y-%m-%d")
+    cutoff_date = datetime.now() - timedelta(days=60)
+    return license_date >= cutoff_date
+
+def write_to_csv(file_name, titles, data):
+    try:
+        with open(file_name, "a", newline="", encoding="utf-8") as file:
+            writer = csv.writer(file)
+            writer.writerow(titles)
+            seen_emails = set()  # Set to track emails
+            for record in data:
+                if is_license_valid(record["licenseExpiryDate"]) and record["email"] not in seen_emails:
+                    seen_emails.add(record["email"])
+                    result = [
+                        record["legalName"],
+                        record["tradeName"],
+                        record["licenseType"],
+                        record["licenseNumber"],
+                        record["licenseExpiryDate"],
+                        record["county"],
+                        record["city"],
+                        record["streetAddress"],
+                        record["zip"],
+                        record["phone"],
+                        record["email"],
+                        record["hours"]
+                    ]
+                    writer.writerow(result)
+    except Exception as e:
+        logging.error(f"Error writing to CSV: {e}")
+
+def main():
+    data = fetch_data(URL, HEADERS)
+    if data:
+        write_to_csv(FILE_NAME, TITLES, data)
+    else:
+        logging.info("No data to write")
+
+if __name__ == "__main__":
+    main()
